@@ -1,0 +1,66 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835";
+
+	fragment@0 {
+		// Configure the gpio pin controller
+		target = <&gpio>;
+		__overlay__ {
+			eeprom_pin: eeprom_pins {
+				brcm,pins = <0 1 2 3 4 5 6 7 8 9 10 11 12 14 15 16 17 18 20 22 23 24 25 27>; // gpio number
+				brcm,function = <1>; // 0 = input, 1 = output
+				brcm,pull = <0>; // 0 = none, 1 = pull down, 2 = pull up
+			};
+		};
+	};
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			atmel_eeprom: eeprom@0 {
+				compatible = "atmel,at28c64b";
+				pinctrl-names = "default";
+				pinctrl-0 = <&eeprom_pin>;
+				status = "okay";
+				address-gpios = <&gpio 1 0>, //A0
+						<&gpio 7 0>, //A1
+						<&gpio 8 0>, //A2
+						<&gpio 25 0>, //A3
+						<&gpio 24 0>, //A4
+						<&gpio 23 0>, //A5
+						<&gpio 18 0>, //A6
+						<&gpio 15 0>, //A7
+						<&gpio 3 0>, //A8
+						<&gpio 4 0>, //A9
+						<&gpio 22 0>, //A10
+						<&gpio 17 0>, //A11
+						<&gpio 14 0>; //A12
+				io-gpios = <&gpio 12 0>, //IO0
+					   <&gpio 16 0>, //IO1
+					   <&gpio 20 0>, //IO2
+					   <&gpio 6 0>, //IO3
+					   <&gpio 5 0>, //IO4
+					   <&gpio 0 0>, //IO5
+					   <&gpio 11 0>, //IO6
+					   <&gpio 9 0>; //IO7
+				ctrl-gpios = <&gpio 10 0>, //CE
+					     <&gpio 27 0>, //OE
+					     <&gpio 2 0>; //WE
+			};
+		};
+	};
+	// disable nodes that are using our gpios
+	fragment@2 {
+		target = <&i2c1>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+	fragment@3 {
+		target = <&spi0>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+};
