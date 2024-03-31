@@ -1,5 +1,5 @@
-#ifndef LCD1602_H
-#define LCD1602_H
+#ifndef EEPROM_H
+#define EEPROM_H
 
 #define EEPROM_COMPATIBLE_STRING "atmel,at28c64b"
 
@@ -12,4 +12,4 @@ struct eeprom_gpiod_device {
     struct gpio_descs* io;
 };
 
-#endif // LCD1602_H
+#endif // EEPROM_H
