@@ -63,7 +63,7 @@ static unsigned long eeprom_read_value(void){
     return val;
 }
 
-static uint8_t eeprom_read_byte_from_address(unsigned long address){
+static uint8_t eeprom_read_byte(unsigned long address){
     int i;
     for (i = 0; i < 8; ++i)
         gpiod_direction_input(eeprom_gpio_dev.io->desc[i]);
@@ -89,7 +89,7 @@ static void eeprom_poll_wait_for_write(unsigned long address, uint8_t written_va
     uint8_t timeout;
 
     for (timeout = 0; timeout < 100; --timeout){
-        tmp = eeprom_read_byte_from_address(address);
+        tmp = eeprom_read_byte(address);
         tmp >>= 7;
         tmp &= 0x1;
         if (tmp == bit7_of_written_val)
@@ -102,7 +102,7 @@ static void eeprom_poll_wait_for_write(unsigned long address, uint8_t written_va
         pr_err("Waiting for end of write timed out!");
 }
 
-static void eeprom_write_byte_to_address(unsigned long address, uint8_t val){
+static void eeprom_write_byte(unsigned long address, uint8_t val){
     int i;
     uint8_t bit7 = (val >> 7) & 0x1;
     uint8_t tmp;
@@ -118,7 +118,30 @@ static void eeprom_write_byte_to_address(unsigned long address, uint8_t val){
     eeprom_poll_wait_for_write(address, val);
 }
 
+static void eeprom_write_bytes(unsigned long address, uint8_t* val, size_t num){
+    size_t i;
+    if (address + num > 0x2000){
+        pr_err("Requested data does not fit eeprom!\n");
+        return;
+    }
 
+    for (i = 0; i < num; ++i){
+        eeprom_write_byte(address + i, val[i]);
+    }
+}
+
+static int eeprom_read_bytes(unsigned long address, uint8_t* val, size_t num){
+    size_t i;
+    if (address + num > 0x2000){
+        pr_err("Requested data can't be read!\n");
+        return -1;
+    }
+
+    for (i = 0; i < num; ++i){
+        val[i] = eeprom_read_byte(address + i);
+    }
+    return 0;
+}
 
 static void eeprom_setup(struct platform_device* pdev){
     int i;
